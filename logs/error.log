@@ -1,0 +1,4 @@
+{"level":"error","message":"Manual login failed: Manual login timeout - please try again","timestamp":"2026-07-25T21:50:22.547Z"}
+{"level":"error","message":"❌ Force login failed: Manual login failed: Manual login timeout - please try again","timestamp":"2026-07-25T21:50:22.548Z"}
+{"level":"error","message":"Manual login failed: Manual login timeout - please try again","timestamp":"2026-07-25T22:03:58.421Z"}
+{"level":"error","message":"❌ Failed to open browser: Manual login failed: Manual login timeout - please try again","timestamp":"2026-07-25T22:03:58.423Z"}

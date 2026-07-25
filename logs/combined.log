@@ -1,0 +1,94 @@
+{"level":"info","message":"========================================","timestamp":"2026-07-25T21:27:51.844Z"}
+{"level":"info","message":"🚀 Instagram Playwright Service Started","timestamp":"2026-07-25T21:27:51.848Z"}
+{"level":"info","message":"========================================","timestamp":"2026-07-25T21:27:51.851Z"}
+{"level":"info","message":"📡 Service running on port: 4000","timestamp":"2026-07-25T21:27:51.852Z"}
+{"level":"info","message":"🔗 Health check: http://localhost:4000/health","timestamp":"2026-07-25T21:27:51.853Z"}
+{"level":"info","message":"🔗 API info: http://localhost:4000/api/info","timestamp":"2026-07-25T21:27:51.854Z"}
+{"level":"info","message":"🔗 Session status: http://localhost:4000/api/session-status","timestamp":"2026-07-25T21:27:51.855Z"}
+{"level":"info","message":"========================================","timestamp":"2026-07-25T21:27:51.855Z"}
+{"level":"info","message":"🔐 Login Mode: MANUAL","timestamp":"2026-07-25T21:27:51.856Z"}
+{"level":"info","message":"🖥️  Headless Mode: OFF","timestamp":"2026-07-25T21:27:51.857Z"}
+{"level":"info","message":"📁 Session Directory: ./sessions","timestamp":"2026-07-25T21:27:51.859Z"}
+{"level":"info","message":"========================================","timestamp":"2026-07-25T21:27:51.859Z"}
+{"level":"info","message":"⚠️  MANUAL LOGIN MODE ENABLED","timestamp":"2026-07-25T21:27:51.860Z"}
+{"level":"info","message":"📱 Browser will open for login on first request","timestamp":"2026-07-25T21:27:51.861Z"}
+{"level":"info","message":"⏰ You have 2 minutes to complete login","timestamp":"2026-07-25T21:27:51.866Z"}
+{"level":"info","message":"========================================","timestamp":"2026-07-25T21:27:51.867Z"}
+{"level":"info","message":"📊 Checking session status...","timestamp":"2026-07-25T21:34:59.141Z"}
+{"level":"info","message":"📁 Session directory: ./sessions","timestamp":"2026-07-25T21:40:36.469Z"}
+{"level":"info","message":"ℹ️ No existing session found","timestamp":"2026-07-25T21:40:36.471Z"}
+{"level":"info","message":"🛑 SIGINT received, shutting down gracefully...","timestamp":"2026-07-25T21:40:36.991Z"}
+{"level":"info","message":"========================================","timestamp":"2026-07-25T21:44:20.600Z"}
+{"level":"info","message":"🚀 Instagram Playwright Service Started","timestamp":"2026-07-25T21:44:20.604Z"}
+{"level":"info","message":"========================================","timestamp":"2026-07-25T21:44:20.606Z"}
+{"level":"info","message":"📡 Service running on port: 4000","timestamp":"2026-07-25T21:44:20.607Z"}
+{"level":"info","message":"🔗 Health check: http://localhost:4000/health","timestamp":"2026-07-25T21:44:20.608Z"}
+{"level":"info","message":"🔗 API info: http://localhost:4000/api/info","timestamp":"2026-07-25T21:44:20.609Z"}
+{"level":"info","message":"🔗 Session status: http://localhost:4000/api/session-status","timestamp":"2026-07-25T21:44:20.609Z"}
+{"level":"info","message":"========================================","timestamp":"2026-07-25T21:44:20.610Z"}
+{"level":"info","message":"🔐 Login Mode: MANUAL","timestamp":"2026-07-25T21:44:20.611Z"}
+{"level":"info","message":"🖥️  Headless Mode: OFF","timestamp":"2026-07-25T21:44:20.612Z"}
+{"level":"info","message":"📁 Session Directory: ./sessions","timestamp":"2026-07-25T21:44:20.613Z"}
+{"level":"info","message":"========================================","timestamp":"2026-07-25T21:44:20.613Z"}
+{"level":"info","message":"⚠️  MANUAL LOGIN MODE ENABLED","timestamp":"2026-07-25T21:44:20.614Z"}
+{"level":"info","message":"📱 Browser will open for login on first request","timestamp":"2026-07-25T21:44:20.615Z"}
+{"level":"info","message":"⏰ You have 2 minutes to complete login","timestamp":"2026-07-25T21:44:20.616Z"}
+{"level":"info","message":"========================================","timestamp":"2026-07-25T21:44:20.617Z"}
+{"level":"info","message":"📊 Checking session status...","timestamp":"2026-07-25T21:44:57.070Z"}
+{"level":"info","message":"ℹ️ No existing session found","timestamp":"2026-07-25T21:44:57.072Z"}
+{"level":"info","message":"📁 Session directory: ./sessions","timestamp":"2026-07-25T21:44:57.075Z"}
+{"level":"info","message":"📊 Checking session status...","timestamp":"2026-07-25T21:46:51.824Z"}
+{"level":"info","message":"ℹ️ No existing session found","timestamp":"2026-07-25T21:46:51.825Z"}
+{"level":"info","message":"📁 Session directory: ./sessions","timestamp":"2026-07-25T21:46:51.830Z"}
+{"level":"info","message":"🔄 Forcing manual login...","timestamp":"2026-07-25T21:48:01.090Z"}
+{"level":"info","message":"ℹ️ No existing session found","timestamp":"2026-07-25T21:48:01.093Z"}
+{"level":"info","message":"📁 Session directory: ./sessions","timestamp":"2026-07-25T21:48:01.118Z"}
+{"level":"info","message":"📁 Session directory: ./sessions","timestamp":"2026-07-25T21:48:01.120Z"}
+{"level":"info","message":"ℹ️ No existing session found","timestamp":"2026-07-25T21:48:03.093Z"}
+{"level":"info","message":"🔐 No valid session found, requiring manual login...","timestamp":"2026-07-25T21:48:03.093Z"}
+{"level":"info","message":"🔄 Starting manual login process...","timestamp":"2026-07-25T21:48:03.097Z"}
+{"level":"info","message":"🌐 Opening browser for manual login...","timestamp":"2026-07-25T21:48:03.099Z"}
+{"level":"info","message":"==================================================","timestamp":"2026-07-25T21:48:22.525Z"}
+{"level":"info","message":"🔐 MANUAL LOGIN REQUIRED","timestamp":"2026-07-25T21:48:22.526Z"}
+{"level":"info","message":"==================================================","timestamp":"2026-07-25T21:48:22.528Z"}
+{"level":"info","message":"📱 Please login to Instagram in the browser window","timestamp":"2026-07-25T21:48:22.529Z"}
+{"level":"info","message":"⏰ You have 2 minutes to complete the login","timestamp":"2026-07-25T21:48:22.530Z"}
+{"level":"info","message":"✅ After login, the service will save your session","timestamp":"2026-07-25T21:48:22.531Z"}
+{"level":"info","message":"==================================================","timestamp":"2026-07-25T21:48:22.532Z"}
+{"level":"error","message":"Manual login failed: Manual login timeout - please try again","timestamp":"2026-07-25T21:50:22.547Z"}
+{"level":"error","message":"❌ Force login failed: Manual login failed: Manual login timeout - please try again","timestamp":"2026-07-25T21:50:22.548Z"}
+{"level":"info","message":"🛑 SIGINT received, shutting down gracefully...","timestamp":"2026-07-25T22:00:45.791Z"}
+{"level":"info","message":"========================================","timestamp":"2026-07-25T22:01:49.180Z"}
+{"level":"info","message":"🚀 Instagram Playwright Service Started","timestamp":"2026-07-25T22:01:49.188Z"}
+{"level":"info","message":"========================================","timestamp":"2026-07-25T22:01:49.190Z"}
+{"level":"info","message":"📡 Service running on port: 4000","timestamp":"2026-07-25T22:01:49.192Z"}
+{"level":"info","message":"🔗 Health check: http://localhost:4000/health","timestamp":"2026-07-25T22:01:49.193Z"}
+{"level":"info","message":"🔗 API info: http://localhost:4000/api/info","timestamp":"2026-07-25T22:01:49.194Z"}
+{"level":"info","message":"🔗 Session status: http://localhost:4000/api/session-status","timestamp":"2026-07-25T22:01:49.196Z"}
+{"level":"info","message":"========================================","timestamp":"2026-07-25T22:01:49.197Z"}
+{"level":"info","message":"🔐 Login Mode: MANUAL","timestamp":"2026-07-25T22:01:49.198Z"}
+{"level":"info","message":"🖥️  Headless Mode: OFF","timestamp":"2026-07-25T22:01:49.200Z"}
+{"level":"info","message":"📁 Session Directory: ./sessions","timestamp":"2026-07-25T22:01:49.204Z"}
+{"level":"info","message":"========================================","timestamp":"2026-07-25T22:01:49.205Z"}
+{"level":"info","message":"⚠️  MANUAL LOGIN MODE ENABLED","timestamp":"2026-07-25T22:01:49.207Z"}
+{"level":"info","message":"📱 Browser will open for login on first request","timestamp":"2026-07-25T22:01:49.208Z"}
+{"level":"info","message":"⏰ You have 2 minutes to complete login","timestamp":"2026-07-25T22:01:49.209Z"}
+{"level":"info","message":"========================================","timestamp":"2026-07-25T22:01:49.211Z"}
+{"level":"info","message":"🔄 Pre-initializing browser for manual login...","timestamp":"2026-07-25T22:01:49.212Z"}
+{"level":"info","message":"✅ Found Brave at: C:\\Program Files\\BraveSoftware\\Brave-Browser\\Application\\brave.exe","timestamp":"2026-07-25T22:01:49.224Z"}
+{"level":"info","message":"🦁 Using Brave Browser","timestamp":"2026-07-25T22:01:49.247Z"}
+{"level":"info","message":"📁 Session directory: ./sessions","timestamp":"2026-07-25T22:01:49.287Z"}
+{"level":"info","message":"ℹ️ No existing session found","timestamp":"2026-07-25T22:01:51.095Z"}
+{"level":"info","message":"🔐 No valid session found, requiring manual login...","timestamp":"2026-07-25T22:01:51.096Z"}
+{"level":"info","message":"🔄 Starting manual login process...","timestamp":"2026-07-25T22:01:51.100Z"}
+{"level":"info","message":"🌐 Opening browser for manual login...","timestamp":"2026-07-25T22:01:51.101Z"}
+{"level":"info","message":"==================================================","timestamp":"2026-07-25T22:01:58.391Z"}
+{"level":"info","message":"🔐 MANUAL LOGIN REQUIRED","timestamp":"2026-07-25T22:01:58.393Z"}
+{"level":"info","message":"==================================================","timestamp":"2026-07-25T22:01:58.400Z"}
+{"level":"info","message":"📱 Please login to Instagram in the browser window","timestamp":"2026-07-25T22:01:58.403Z"}
+{"level":"info","message":"⏰ You have 2 minutes to complete the login","timestamp":"2026-07-25T22:01:58.406Z"}
+{"level":"info","message":"✅ After login, the service will save your session","timestamp":"2026-07-25T22:01:58.408Z"}
+{"level":"info","message":"==================================================","timestamp":"2026-07-25T22:01:58.409Z"}
+{"level":"error","message":"Manual login failed: Manual login timeout - please try again","timestamp":"2026-07-25T22:03:58.421Z"}
+{"level":"error","message":"❌ Failed to open browser: Manual login failed: Manual login timeout - please try again","timestamp":"2026-07-25T22:03:58.423Z"}
+{"level":"info","message":"🛑 SIGINT received, shutting down gracefully...","timestamp":"2026-07-25T22:22:00.304Z"}

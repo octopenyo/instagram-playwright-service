@@ -1,0 +1,23 @@
+services:
+  - type: web
+    name: instagram-playwright
+    env: node
+    buildCommand: npm install && npx playwright install chromium && npx playwright install-deps
+    startCommand: npm start
+    envVars:
+      - key: PORT
+        value: 4000
+      - key: INSTAGRAM_USERNAME
+        sync: false
+      - key: INSTAGRAM_PASSWORD
+        sync: false
+      - key: HEADLESS
+        value: true
+      - key: MAX_RETRIES
+        value: 3
+      - key: RETRY_DELAY
+        value: 5000
+      - key: NODE_ENV
+        value: production
+      - key: AUTO_LOGIN
+        value: true
