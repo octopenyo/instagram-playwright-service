@@ -1,7 +1,6 @@
 const { chromium } = require('playwright');
 const { logger } = require('./utils/logger');
 const SessionManager = require('./sessionManager');
-const fs = require('fs').promises;
 
 class InstagramService {
   constructor() {
@@ -16,69 +15,70 @@ class InstagramService {
   async initializeBrowser() {
     if (!this.browser) {
       const headless = process.env.HEADLESS === 'true';
-      
-      // BRAVE BROWSER PATHS - Try multiple locations
-      const bravePaths = [
-        'C:\\Program Files\\BraveSoftware\\Brave-Browser\\Application\\brave.exe',
-        'C:\\Users\\User\\AppData\\Local\\BraveSoftware\\Brave-Browser\\Application\\brave.exe',
-        'C:\\Program Files (x86)\\BraveSoftware\\Brave-Browser\\Application\\brave.exe'
-      ];
-      
-      let bravePath = null;
-      for (const path of bravePaths) {
-        try {
-          await fs.access(path);
-          bravePath = path;
-          logger.info(`✅ Found Brave at: ${path}`);
-          break;
-        } catch (e) {
-          // Path doesn't exist, try next
-        }
-      }
-      
-      if (bravePath) {
-        logger.info('🦁 Using Brave Browser');
-        this.browser = await chromium.launch({
-          headless: headless,
-          executablePath: bravePath,
-          args: [
-            '--disable-blink-features=AutomationControlled',
-            '--disable-dev-shm-usage',
-            '--no-sandbox',
-            '--disable-setuid-sandbox',
-            '--disable-web-security',
-            '--disable-features=IsolateOrigins,site-per-process',
-            '--disable-site-isolation-trials',
-            '--start-maximized',
-            '--disable-brave-update'
-          ]
-        });
-      } else {
-        // Fallback to Chromium if Brave not found
-        logger.warn('⚠️ Brave not found, falling back to Chromium');
-        this.browser = await chromium.launch({
-          headless: headless,
-          args: [
-            '--disable-blink-features=AutomationControlled',
-            '--disable-dev-shm-usage',
-            '--no-sandbox',
-            '--disable-setuid-sandbox',
-            '--disable-web-security',
-            '--disable-features=IsolateOrigins,site-per-process',
-            '--disable-site-isolation-trials',
-            '--start-maximized'
-          ]
-        });
-      }
+
+      logger.info('🌐 Launching Chromium...');
+      this.browser = await chromium.launch({
+        headless: headless,
+        args: [
+          '--disable-blink-features=AutomationControlled',
+          '--disable-dev-shm-usage',
+          '--no-sandbox',
+          '--disable-setuid-sandbox',
+          '--disable-web-security',
+          '--disable-features=IsolateOrigins,site-per-process',
+          '--disable-site-isolation-trials',
+          '--start-maximized'
+        ]
+      });
     }
     return this.browser;
+  }
+
+  // Dismiss Instagram's cookie-consent dialog if it appears.
+  // Fresh contexts (which is what we always have on a server) show this
+  // before the login form is interactable, and it silently blocks
+  // waitForSelector('input[name="username"]') until it's handled.
+  async dismissCookieBanner() {
+    const cookieButtonTexts = [
+      'Allow essential and optional cookies',
+      'Allow all cookies',
+      'Accept All',
+      'Accept'
+    ];
+
+    for (const text of cookieButtonTexts) {
+      try {
+        await this.page.click(`button:has-text("${text}")`, { timeout: 3000 });
+        logger.info(`🍪 Dismissed cookie banner ("${text}")`);
+        return true;
+      } catch (e) {
+        // not present, try next
+      }
+    }
+    return false;
+  }
+
+  // Debug helper: logs the current URL and a snippet of page text so we
+  // can tell from Render logs whether we landed on the real login page,
+  // a cookie wall, or an Instagram checkpoint/captcha page.
+  async logPageState(label) {
+    try {
+      const url = this.page.url();
+      const bodyText = await this.page.evaluate(() =>
+        document.body ? document.body.innerText.slice(0, 300).replace(/\s+/g, ' ') : ''
+      );
+      logger.info(`🔎 [${label}] URL: ${url}`);
+      logger.info(`🔎 [${label}] Page preview: ${bodyText}`);
+    } catch (e) {
+      logger.warn(`Could not capture page state for ${label}: ${e.message}`);
+    }
   }
 
   async manualLogin() {
     try {
       logger.info('🔄 Starting manual login process...');
       logger.info('🌐 Opening browser for manual login...');
-      
+
       this.context = await this.browser.newContext({
         userAgent: 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/119.0.0.0 Safari/537.36',
         viewport: { width: 1280, height: 800 },
@@ -87,9 +87,14 @@ class InstagramService {
       });
 
       this.page = await this.context.newPage();
-      
-      await this.page.goto('https://www.instagram.com/', { waitUntil: 'networkidle' });
-      
+
+      // networkidle can hang on Instagram since it keeps background
+      // connections open. domcontentloaded + explicit waits is more reliable.
+      await this.page.goto('https://www.instagram.com/', { waitUntil: 'domcontentloaded' });
+
+      await this.dismissCookieBanner();
+      await this.logPageState('manualLogin-initial-load');
+
       logger.info('==================================================');
       logger.info('🔐 MANUAL LOGIN REQUIRED');
       logger.info('==================================================');
@@ -97,16 +102,16 @@ class InstagramService {
       logger.info('⏰ You have 2 minutes to complete the login');
       logger.info('✅ After login, the service will save your session');
       logger.info('==================================================');
-      
+
       await this.waitForManualLogin();
-      
+
       const sessionData = await this.context.storageState();
       const username = process.env.INSTAGRAM_USERNAME || 'instagram_user';
       await this.sessionManager.saveSession(username, sessionData);
-      
+
       logger.info('✅ Manual login successful! Session saved.');
       return true;
-      
+
     } catch (error) {
       logger.error(`Manual login failed: ${error.message}`);
       throw new Error(`Manual login failed: ${error.message}`);
@@ -120,17 +125,17 @@ class InstagramService {
       }, this.loginTimeout);
 
       try {
-        await this.page.waitForSelector('a[href="/direct/inbox/"]', { 
-          timeout: this.loginTimeout 
+        await this.page.waitForSelector('a[href="/direct/inbox/"]', {
+          timeout: this.loginTimeout
         });
-        
-        await this.page.waitForSelector('svg[aria-label="Home"]', { 
-          timeout: 5000 
+
+        await this.page.waitForSelector('svg[aria-label="Home"]', {
+          timeout: 5000
         });
-        
+
         clearTimeout(timeout);
         resolve(true);
-        
+
       } catch (error) {
         clearTimeout(timeout);
         reject(new Error('Login not detected - please ensure you logged in successfully'));
@@ -142,11 +147,11 @@ class InstagramService {
     if (this.isManualLogin) {
       const username = process.env.INSTAGRAM_USERNAME || 'instagram_user';
       const latestSession = await this.sessionManager.getLatestSession(username);
-      
+
       if (latestSession) {
         logger.info('📂 Found existing session, attempting to restore...');
         const sessionData = await this.sessionManager.loadSession(latestSession);
-        
+
         if (sessionData) {
           try {
             this.context = await this.browser.newContext({
@@ -155,12 +160,15 @@ class InstagramService {
               viewport: { width: 1280, height: 800 }
             });
             this.page = await this.context.newPage();
-            
-            await this.page.goto('https://www.instagram.com/', { waitUntil: 'networkidle' });
+
+            await this.page.goto('https://www.instagram.com/', { waitUntil: 'domcontentloaded' });
+            await this.dismissCookieBanner();
+            await this.logPageState('ensureLoggedIn-session-restore');
+
             const isValid = await this.page.evaluate(() => {
               return !document.querySelector('input[name="username"]');
             });
-            
+
             if (isValid) {
               logger.info('✅ Session restored successfully!');
               return true;
@@ -173,25 +181,25 @@ class InstagramService {
           }
         }
       }
-      
+
       logger.info('🔐 No valid session found, requiring manual login...');
       return await this.manualLogin();
     }
-    
+
     const username = process.env.INSTAGRAM_USERNAME;
     const password = process.env.INSTAGRAM_PASSWORD;
-    
+
     if (!username || !password) {
       throw new Error('Instagram credentials not found in environment variables');
     }
-    
+
     return await this.automaticLogin(username, password);
   }
 
   async automaticLogin(username, password) {
     try {
       logger.info('🔄 Starting automatic login...');
-      
+
       this.context = await this.browser.newContext({
         userAgent: 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/119.0.0.0 Safari/537.36',
         viewport: { width: 1280, height: 800 },
@@ -200,33 +208,41 @@ class InstagramService {
       });
 
       this.page = await this.context.newPage();
-      
-      await this.page.goto('https://www.instagram.com/', { waitUntil: 'networkidle' });
-      
-      await this.page.waitForSelector('input[name="username"]', { timeout: 10000 });
-      
+
+      // domcontentloaded instead of networkidle — Instagram keeps background
+      // connections alive indefinitely, so networkidle can burn the whole
+      // timeout before the form is even checked.
+      await this.page.goto('https://www.instagram.com/', { waitUntil: 'domcontentloaded' });
+
+      await this.dismissCookieBanner();
+      await this.logPageState('automaticLogin-initial-load');
+
+      await this.page.waitForSelector('input[name="username"]', { timeout: 30000 });
+
       await this.page.fill('input[name="username"]', username);
       await this.page.fill('input[name="password"]', password);
-      
+
       await this.page.click('button[type="submit"]');
-      
-      await this.page.waitForNavigation({ waitUntil: 'networkidle' });
-      
+
+      await this.page.waitForNavigation({ waitUntil: 'domcontentloaded' }).catch(() => {});
+      await this.logPageState('automaticLogin-after-submit');
+
       try {
         await this.page.click('button:has-text("Not Now")', { timeout: 3000 });
       } catch (e) {}
-      
+
       try {
         await this.page.click('button:has-text("Not Now")', { timeout: 3000 });
       } catch (e) {}
 
       const sessionData = await this.context.storageState();
       await this.sessionManager.saveSession(username, sessionData);
-      
+
       logger.info(`✅ Successfully logged in as ${username}`);
       return true;
-      
+
     } catch (error) {
+      await this.logPageState('automaticLogin-failure');
       logger.error(`Automatic login failed: ${error.message}`);
       throw new Error(`Login failed: ${error.message}`);
     }
@@ -235,23 +251,23 @@ class InstagramService {
   async sendDirectMessage(username, message, sessionId = null) {
     let retries = 0;
     const maxRetries = parseInt(process.env.MAX_RETRIES) || 3;
-    
+
     while (retries < maxRetries) {
       try {
         await this.initializeBrowser();
-        
+
         const isLoggedIn = await this.ensureLoggedIn(sessionId);
         if (!isLoggedIn) {
           throw new Error('Failed to authenticate');
         }
 
-        await this.page.goto(`https://www.instagram.com/${username}/`, { 
-          waitUntil: 'networkidle',
+        await this.page.goto(`https://www.instagram.com/${username}/`, {
+          waitUntil: 'domcontentloaded',
           timeout: 30000
         });
 
         const profileExists = await this.page.evaluate(() => {
-          const errorElement = document.querySelector('h2:has-text("Sorry, this page isn\'t available.")');
+          const errorElement = document.querySelector("h2:has-text(\"Sorry, this page isn't available.\")");
           return !errorElement;
         });
 
@@ -272,11 +288,11 @@ class InstagramService {
         await this.page.waitForTimeout(1000);
 
         await this.page.waitForSelector('textarea[placeholder*="Message"]', { timeout: 10000 });
-        
+
         await this.page.fill('textarea[placeholder*="Message"]', message);
-        
+
         await this.page.click('button:has-text("Send")');
-        
+
         await this.page.waitForTimeout(2000);
 
         const messageSent = await this.page.evaluate(() => {
@@ -300,7 +316,7 @@ class InstagramService {
       } catch (error) {
         logger.error(`Attempt ${retries + 1} failed: ${error.message}`);
         retries++;
-        
+
         if (retries < maxRetries) {
           const delay = parseInt(process.env.RETRY_DELAY) || 5000;
           await this.wait(delay);
@@ -326,14 +342,14 @@ class InstagramService {
       await this.ensureLoggedIn();
 
       await this.page.goto(`https://www.instagram.com/${username}/`, {
-        waitUntil: 'networkidle'
+        waitUntil: 'domcontentloaded'
       });
 
       const profileData = await this.page.evaluate(() => {
         const profileName = document.querySelector('h2')?.textContent || '';
         const bio = document.querySelector('span.-vDIg')?.textContent || '';
         const posts = document.querySelector('span.g47SY')?.textContent || '0';
-        
+
         return {
           username: profileName,
           bio: bio,
@@ -360,25 +376,25 @@ class InstagramService {
       await this.ensureLoggedIn();
 
       await this.page.goto('https://www.instagram.com/direct/inbox/', {
-        waitUntil: 'networkidle'
+        waitUntil: 'domcontentloaded'
       });
 
       const conversations = await this.page.evaluate((limit) => {
         const threads = [];
         const items = document.querySelectorAll('div[role="button"]');
-        
+
         for (let i = 0; i < Math.min(items.length, limit); i++) {
           const item = items[i];
           const name = item.querySelector('span')?.textContent || '';
           const preview = item.querySelector('span[dir="auto"]')?.textContent || '';
-          
+
           threads.push({
             name: name,
             preview: preview,
             time: 'Recent'
           });
         }
-        
+
         return threads;
       }, limit);
 
