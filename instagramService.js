@@ -1,6 +1,7 @@
 const { chromium } = require('playwright');
 const { logger } = require('./utils/logger');
 const SessionManager = require('./sessionManager');
+const fs = require('fs').promises;
 
 class InstagramService {
   constructor() {
@@ -12,24 +13,56 @@ class InstagramService {
     this.loginTimeout = parseInt(process.env.LOGIN_TIMEOUT) || 120000;
   }
 
+  async findBravePath() {
+    // Common Brave install locations on Windows. Returns null if not found,
+    // so callers can fall back to Playwright's bundled Chromium.
+    const bravePaths = [
+      'C:\\Program Files\\BraveSoftware\\Brave-Browser\\Application\\brave.exe',
+      'C:\\Program Files (x86)\\BraveSoftware\\Brave-Browser\\Application\\brave.exe',
+      `${process.env.LOCALAPPDATA || ''}\\BraveSoftware\\Brave-Browser\\Application\\brave.exe`
+    ];
+
+    for (const p of bravePaths) {
+      try {
+        await fs.access(p);
+        return p;
+      } catch (e) {
+        // not found at this path, try next
+      }
+    }
+    return null;
+  }
+
   async initializeBrowser() {
     if (!this.browser) {
       const headless = process.env.HEADLESS === 'true';
+      const bravePath = await this.findBravePath();
 
-      logger.info('🌐 Launching Chromium...');
-      this.browser = await chromium.launch({
-        headless: headless,
-        args: [
-          '--disable-blink-features=AutomationControlled',
-          '--disable-dev-shm-usage',
-          '--no-sandbox',
-          '--disable-setuid-sandbox',
-          '--disable-web-security',
-          '--disable-features=IsolateOrigins,site-per-process',
-          '--disable-site-isolation-trials',
-          '--start-maximized'
-        ]
-      });
+      const launchArgs = [
+        '--disable-blink-features=AutomationControlled',
+        '--disable-dev-shm-usage',
+        '--no-sandbox',
+        '--disable-setuid-sandbox',
+        '--disable-web-security',
+        '--disable-features=IsolateOrigins,site-per-process',
+        '--disable-site-isolation-trials',
+        '--start-maximized'
+      ];
+
+      if (bravePath) {
+        logger.info(`🦁 Launching Brave: ${bravePath}`);
+        this.browser = await chromium.launch({
+          headless: headless,
+          executablePath: bravePath,
+          args: launchArgs
+        });
+      } else {
+        logger.warn('⚠️ Brave not found on this machine, falling back to bundled Chromium');
+        this.browser = await chromium.launch({
+          headless: headless,
+          args: launchArgs
+        });
+      }
     }
     return this.browser;
   }
@@ -154,6 +187,9 @@ class InstagramService {
 
         if (sessionData) {
           try {
+            if (this.context) {
+              await this.context.close().catch(() => {});
+            }
             this.context = await this.browser.newContext({
               storageState: sessionData,
               userAgent: 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/119.0.0.0 Safari/537.36',

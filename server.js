@@ -9,6 +9,16 @@ const { logger } = require('./utils/logger');
 const app = express();
 const port = process.env.PORT || 4000;
 
+// ============================================
+// SHARED SERVICE INSTANCE
+// ============================================
+// Critical: reuse ONE InstagramService (and its ONE browser) across all
+// requests. Creating `new InstagramService()` per request — the old
+// behavior — launches a brand new Chromium/Brave window every single time,
+// which is what caused requests to hang: multiple non-headless browsers
+// fighting for CPU on the same machine.
+const instagram = new InstagramService();
+
 // Rate limiting to prevent abuse
 const limiter = rateLimit({
   windowMs: 60 * 1000,
@@ -51,7 +61,6 @@ app.post('/api/send-message', async (req, res) => {
   try {
     logger.info(`📨 Sending message to ${username}`);
     
-    const instagram = new InstagramService();
     const result = await instagram.sendDirectMessage(username, message, sessionId);
     
     if (result.success) {
@@ -94,7 +103,6 @@ app.post('/api/check-profile', async (req, res) => {
 
   try {
     logger.info(`🔍 Checking profile: ${username}`);
-    const instagram = new InstagramService();
     const result = await instagram.checkProfile(username);
     
     if (result.success) {
@@ -124,7 +132,6 @@ app.post('/api/get-conversations', async (req, res) => {
   
   try {
     logger.info(`💬 Getting conversations (limit: ${limit})`);
-    const instagram = new InstagramService();
     const result = await instagram.getConversations(limit);
     
     if (result.success) {
@@ -245,7 +252,7 @@ app.post('/api/force-login', async (req, res) => {
     const sessionManager = new SessionManager();
     await sessionManager.deleteSession(username);
     
-    const instagram = new InstagramService();
+    await instagram.cleanup(); // close any existing browser before reopening
     await instagram.initializeBrowser();
     await instagram.ensureLoggedIn();
     
@@ -337,11 +344,11 @@ const server = app.listen(port, async () => {
     logger.info('⏰ You have 2 minutes to complete login');
     logger.info('========================================');
     
-    // Auto-open browser on startup
+    // Auto-open browser on startup, using the SAME shared instance the
+    // rest of the server uses — not a throwaway one, so this session
+    // carries forward into actual send-message requests.
     logger.info('🔄 Pre-initializing browser for manual login...');
     try {
-      const InstagramService = require('./instagramService');
-      const instagram = new InstagramService();
       await instagram.initializeBrowser();
       await instagram.ensureLoggedIn();
       logger.info('✅ Browser opened for manual login');
