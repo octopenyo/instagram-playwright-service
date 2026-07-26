@@ -329,16 +329,20 @@ class InstagramService {
           throw new Error('Profile not found');
         }
 
-        const messageButtonExists = await this.page.evaluate(() => {
-          const buttons = Array.from(document.querySelectorAll('button'));
-          return buttons.some(button => button.textContent.trim() === 'Message');
-        });
+        // Instagram's "Message" control is frequently a styled
+        // <div role="button">, not a real <button> element — raw
+        // document.querySelectorAll('button') misses it entirely even
+        // when it's clearly visible on screen. getByRole matches on the
+        // accessibility tree, so it finds it regardless of the actual tag.
+        const messageButton = this.page.getByRole('button', { name: 'Message', exact: true });
+        const messageButtonCount = await messageButton.count();
 
-        if (!messageButtonExists) {
+        if (messageButtonCount === 0) {
+          await this.logPageState('sendDirectMessage-no-message-button-found');
           throw new Error('Message button not found - user may not accept DMs');
         }
 
-        await this.page.click('button:has-text("Message")');
+        await messageButton.first().click();
         await this.page.waitForTimeout(1500);
         await this.logPageState('sendDirectMessage-after-message-click');
 
@@ -384,7 +388,18 @@ class InstagramService {
           await this.page.keyboard.type(message, { delay: 20 });
         }
 
-        await this.page.click('button:has-text("Send")');
+        // Same issue as the Message button — Send is likely also a
+        // role="button" div, not a real <button>. Use the same robust
+        // approach instead of a tag-specific selector.
+        const sendButton = this.page.getByRole('button', { name: 'Send', exact: true });
+        const sendButtonCount = await sendButton.count();
+
+        if (sendButtonCount === 0) {
+          await this.logPageState('sendDirectMessage-no-send-button-found');
+          throw new Error('Send button not found after composing message.');
+        }
+
+        await sendButton.first().click();
         await this.logPageState('sendDirectMessage-after-send-click');
 
         await this.page.waitForTimeout(2000);
