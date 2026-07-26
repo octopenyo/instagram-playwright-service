@@ -302,6 +302,15 @@ class InstagramService {
           timeout: 30000
         });
 
+        // Instagram is a client-rendered SPA — domcontentloaded fires on the
+        // raw HTML shell, before React has actually painted the profile
+        // (username, buttons, everything). Checking for content immediately
+        // after domcontentloaded finds an empty page every time. Wait for
+        // real rendering to finish before inspecting anything.
+        await this.page.waitForLoadState('networkidle', { timeout: 20000 }).catch(() => {});
+        await this.page.waitForSelector('header, main, button', { timeout: 20000 }).catch(() => {});
+        await this.page.waitForTimeout(1500); // brief settle for late-hydrating buttons
+
         const profileExists = await this.page.evaluate(() => {
           // Note: ':has-text()' is Playwright-only syntax and is NOT valid
           // real browser CSS — using it inside document.querySelector()
@@ -330,12 +339,50 @@ class InstagramService {
         }
 
         await this.page.click('button:has-text("Message")');
-        await this.page.waitForTimeout(1000);
+        await this.page.waitForTimeout(1500);
         await this.logPageState('sendDirectMessage-after-message-click');
 
-        await this.page.waitForSelector('textarea[placeholder*="Message"]', { timeout: 10000 });
+        // Instagram's DM compose box has changed over time — it's no longer
+        // reliably a <textarea>. Try several known patterns in order and use
+        // whichever one actually exists on the page right now, instead of
+        // hardcoding one selector that silently times out when IG changes.
+        const composeSelectors = [
+          'textarea[placeholder*="Message"]',
+          'div[contenteditable="true"][aria-label*="Message"]',
+          'div[contenteditable="true"][aria-describedby*="placeholder"]',
+          'div[role="textbox"][contenteditable="true"]'
+        ];
 
-        await this.page.fill('textarea[placeholder*="Message"]', message);
+        let composeBox = null;
+        let matchedSelector = null;
+        for (const sel of composeSelectors) {
+          const locator = this.page.locator(sel).first();
+          const count = await locator.count();
+          if (count > 0) {
+            composeBox = locator;
+            matchedSelector = sel;
+            break;
+          }
+        }
+
+        if (!composeBox) {
+          await this.logPageState('sendDirectMessage-no-compose-box-found');
+          throw new Error(
+            'Could not find the message compose box with any known selector. ' +
+            'Instagram may have changed its DOM again — check the logged page preview.'
+          );
+        }
+
+        logger.info(`✍️ Using compose box selector: ${matchedSelector}`);
+
+        if (matchedSelector.startsWith('textarea')) {
+          await composeBox.fill(message);
+        } else {
+          // contenteditable divs don't support .fill() reliably — click to
+          // focus, then type character by character like a real user.
+          await composeBox.click();
+          await this.page.keyboard.type(message, { delay: 20 });
+        }
 
         await this.page.click('button:has-text("Send")');
         await this.logPageState('sendDirectMessage-after-send-click');
