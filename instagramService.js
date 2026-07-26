@@ -303,9 +303,18 @@ class InstagramService {
         });
 
         const profileExists = await this.page.evaluate(() => {
-          const errorElement = document.querySelector("h2:has-text(\"Sorry, this page isn't available.\")");
-          return !errorElement;
+          // Note: ':has-text()' is Playwright-only syntax and is NOT valid
+          // real browser CSS — using it inside document.querySelector()
+          // throws a SyntaxError and crashes this whole evaluate() call.
+          // Match on plain textContent instead.
+          const headings = Array.from(document.querySelectorAll('h2'));
+          const hasErrorHeading = headings.some(h =>
+            h.textContent.includes("Sorry, this page isn't available")
+          );
+          return !hasErrorHeading;
         });
+
+        await this.logPageState('sendDirectMessage-after-profile-load');
 
         if (!profileExists) {
           throw new Error('Profile not found');
@@ -322,12 +331,14 @@ class InstagramService {
 
         await this.page.click('button:has-text("Message")');
         await this.page.waitForTimeout(1000);
+        await this.logPageState('sendDirectMessage-after-message-click');
 
         await this.page.waitForSelector('textarea[placeholder*="Message"]', { timeout: 10000 });
 
         await this.page.fill('textarea[placeholder*="Message"]', message);
 
         await this.page.click('button:has-text("Send")');
+        await this.logPageState('sendDirectMessage-after-send-click');
 
         await this.page.waitForTimeout(2000);
 
